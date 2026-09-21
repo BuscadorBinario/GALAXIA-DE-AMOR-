@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Galaxia de Amor</title>
+<title>Galaxia de Flores Amarillas</title>
 <style>
   :root {
     --ui-bg: rgba(24, 18, 0, .55);
@@ -36,11 +36,14 @@
   #letterBtn { left: max(16px, env(safe-area-inset-left)); }
   #music { right: max(16px, env(safe-area-inset-right)); }
   #fs { right: calc(max(16px, env(safe-area-inset-right)) + 56px); }
+  #storyBtn { left: max(16px, env(safe-area-inset-left)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 56px); }
+  #wishBtn { left: max(16px, env(safe-area-inset-left)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 112px); }
   .counter { position: fixed; top: 14px; left: 0; right: 0; text-align: center; padding: 0 16px; pointer-events: none;
     font: italic 15px/1.4 Georgia, "Times New Roman", serif; color: #ffe9a6; text-shadow: 0 0 12px rgba(255,190,40,.6); }
   .counter[hidden] { display: none; }
-  .intro { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: none; text-align: center; animation: introOut 1.4s ease 5s forwards; }
+  .intro { position: fixed; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none; text-align: center; animation: introOut 1.4s ease 4.6s forwards; }
+  .intro.play { display: flex; }
   .intro-para { font: italic 22px Georgia, "Times New Roman", serif; color: var(--ui-text); letter-spacing: .06em;
     opacity: 0; animation: lineIn 1.2s ease .3s forwards; }
   .intro-name { font: italic 600 clamp(38px, 9vw, 72px)/1.1 Georgia, "Times New Roman", serif; color: #ffd54a; padding: 0 20px;
@@ -48,6 +51,27 @@
   .intro-from { margin-top: 10px; font: italic 20px Georgia, "Times New Roman", serif; color: var(--ui-text);
     opacity: 0; animation: lineIn 1.2s ease 2s forwards; }
   @keyframes introOut { to { opacity: 0; visibility: hidden; } }
+  .start { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 24px; text-align: center;
+    background: radial-gradient(ellipse at 50% 42%, #33230a 0%, #120c00 45%, #030300 100%);
+    transition: opacity 1.2s ease, visibility 1.2s; }
+  .start.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  .start-emoji { font-size: 64px; filter: drop-shadow(0 0 24px rgba(255,190,40,.75)); animation: startFloat 4s ease-in-out infinite; }
+  .start-lead { font: italic 18px Georgia, "Times New Roman", serif; color: var(--ui-text); letter-spacing: .06em; }
+  .start-btn { max-width: 88vw; padding: 16px 32px; border: 0; border-radius: 999px; cursor: pointer;
+    font: italic 600 clamp(18px, 4.8vw, 24px)/1.3 Georgia, "Times New Roman", serif; color: #3a2600;
+    background: linear-gradient(135deg, #ffe066, #ffb300); box-shadow: 0 0 30px rgba(255,190,40,.55);
+    animation: startPulse 2.6s ease-in-out infinite; }
+  .start-btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  .start-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+  .start.playing .start-canvas { opacity: 1; }
+  .start.playing .start-emoji, .start.playing .start-lead, .start.playing .start-btn { opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+  .bloom-caption { position: absolute; left: 0; right: 0; top: 78%; padding: 0 20px; text-align: center; pointer-events: none;
+    font: italic 600 clamp(18px, 4.6vw, 26px)/1.3 Georgia, "Times New Roman", serif; color: #ffe066;
+    text-shadow: 0 0 22px rgba(255,190,40,.7); opacity: 0; transition: opacity .9s ease; }
+  .bloom-caption.show { opacity: 1; }
+  @keyframes startFloat { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+  @keyframes startPulse { 0%, 100% { box-shadow: 0 0 22px rgba(255,190,40,.45); } 50% { box-shadow: 0 0 46px rgba(255,190,40,.85); } }
   .poem.letter .poem-card { width: min(92vw, 500px); }
   .poem.letter .poem-lines p { text-align: left; font-size: 17px; margin-bottom: 14px; }
   .player { position: fixed; z-index: 8; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 58px);
@@ -92,35 +116,6 @@
     transition: opacity .5s, transform .5s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
   .np.show { opacity: 1; transform: translateX(-50%); }
-  .gallery { position: fixed; inset: 0; z-index: 11; display: flex; align-items: center; justify-content: center; padding: 16px;
-    background: rgba(2,2,0,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: poemIn .35s ease both; }
-  .gallery[hidden] { display: none; }
-  .gal-card { position: relative; width: min(96vw, 980px); max-height: 92vh; overflow-y: auto; padding: 28px 22px 22px;
-    border-radius: 22px; text-align: center;
-    background: radial-gradient(ellipse at 50% 0%, rgba(90,62,0,.55), rgba(20,14,0,.94) 70%);
-    border: 1px solid var(--ui-border); box-shadow: 0 0 70px rgba(255,190,40,.22); }
-  .gal-card h2 { margin: 6px 0 18px; font: italic 600 28px/1.2 Georgia, "Times New Roman", serif;
-    color: #ffd54a; text-shadow: 0 0 18px rgba(255,190,40,.55); }
-  .gal-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: center; }
-  .gal-photos figure { margin: 0; padding: 10px 10px 8px; background: #fff8dc; border-radius: 6px; cursor: zoom-in;
-    box-shadow: 0 8px 30px rgba(0,0,0,.55), 0 0 24px rgba(255,190,40,.25);
-    transform: rotate(var(--rot, 0deg)); opacity: 0; animation: photoIn .8s ease forwards; animation-delay: var(--d, 0s); }
-  .gal-photos img { display: block; width: 100%; height: auto; max-height: 56vh; object-fit: contain; border-radius: 3px; background: #2a2000; }
-  .gal-photos figcaption { margin-top: 8px; font: italic 14px Georgia, "Times New Roman", serif; color: #6b4a00; }
-  .ph-missing { aspect-ratio: 3 / 4; display: flex; align-items: center; justify-content: center; padding: 14px; border-radius: 3px;
-    font: 13px/1.5 "Segoe UI", Arial, sans-serif; color: #7a5a10; background: repeating-linear-gradient(45deg, #f3e3a4, #f3e3a4 10px, #efdb94 10px, #efdb94 20px); }
-  .gal-hint { margin: 16px 0 0; font: italic 14px Georgia, "Times New Roman", serif; color: rgba(255,235,170,.7); }
-  @media (max-width: 680px) {
-    .gal-photos { grid-template-columns: 1fr; gap: 14px; }
-    .gal-photos img { max-height: 46vh; }
-    .gal-card h2 { font-size: 24px; }
-  }
-  @keyframes photoIn { from { opacity: 0; transform: translateY(26px) scale(.92) rotate(var(--rot, 0deg)); } to { opacity: 1; transform: rotate(var(--rot, 0deg)); } }
-  .lightbox { position: fixed; inset: 0; z-index: 12; display: flex; align-items: center; justify-content: center; padding: 16px;
-    background: rgba(0,0,0,.92); cursor: zoom-out; }
-  .lightbox[hidden] { display: none; }
-  .lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 6px; box-shadow: 0 0 60px rgba(255,190,40,.3); }
-  @media (prefers-reduced-motion: reduce) { .gal-photos figure { animation: none; opacity: 1; } }
   .poem { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px;
     background: rgba(2,2,0,.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: poemIn .35s ease both; }
   .poem[hidden] { display: none; }
@@ -138,12 +133,27 @@
   .poem-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   @keyframes poemIn { from { opacity: 0 } to { opacity: 1 } }
   @keyframes lineIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
-  @media (prefers-reduced-motion: reduce) { .poem, .poem-lines p { animation: none; opacity: 1; } .intro { display: none; } }
+  /* Frases cinematográficas del espectáculo */
+  .show-caption { position: fixed; left: 0; right: 0; top: 17%; z-index: 4; padding: 0 24px; text-align: center; pointer-events: none;
+    font: italic 600 clamp(20px, 5vw, 36px)/1.3 Georgia, "Times New Roman", serif; color: #fff1a8;
+    text-shadow: 0 0 24px rgba(255,190,40,.85), 0 0 4px rgba(90,50,0,.8);
+    opacity: 0; transform: translateY(14px) scale(.96); filter: blur(6px);
+    transition: opacity 1.6s ease, transform 1.6s ease, filter 1.6s ease; }
+  .show-caption.show { opacity: 1; transform: none; filter: none; }
+  @media (prefers-reduced-motion: reduce) { .poem, .poem-lines p { animation: none; opacity: 1; } .intro, .intro.play { display: none; } .start-emoji, .start-btn { animation: none; } .show-caption { transition: none; } }
 </style>
 </head>
 <body>
 <div class="vignette"></div>
-<div class="hint" id="hint">Toca las galaxias lejanas para ver sus fotos · toca las frases y el corazón para leer poemas</div>
+
+<div class="start" id="start">
+  <div class="start-emoji" aria-hidden="true">🌻</div>
+  <div class="start-lead">Tengo algo para ti</div>
+  <button class="start-btn" id="startBtn" type="button">Feliz Día de las Flores Amarillas</button>
+  <canvas class="start-canvas" id="bloom" aria-hidden="true"></canvas>
+  <div class="bloom-caption" id="bloomCaption" aria-hidden="true"></div>
+</div>
+<div class="hint" id="hint">Toca las frases y el corazón amarillo para leer poemas · 📖 nuestra historia · 🌼 mensaje sorpresa · toca el cielo para lanzar fuegos artificiales</div>
 
 <div class="intro" id="intro" aria-hidden="true">
   <div class="intro-para">Para</div>
@@ -151,7 +161,10 @@
   <div class="intro-from" id="introFrom"></div>
 </div>
 <div class="counter" id="counter" hidden></div>
-<button class="round" id="letterBtn" type="button" aria-label="Leer la carta de amor">💌</button>
+<div class="show-caption" id="showCaption" aria-live="polite"></div>
+<button class="round" id="letterBtn" type="button" aria-label="Leer la carta">💌</button>
+<button class="round" id="storyBtn" type="button" aria-label="Leer nuestra historia">📖</button>
+<button class="round" id="wishBtn" type="button" aria-label="Recibir un mensaje sorpresa">🌼</button>
 <button class="round" id="fs" type="button" aria-label="Pantalla completa">⛶</button>
 <button class="round" id="music" type="button" aria-expanded="false" aria-controls="player" aria-label="Abrir reproductor de música">♪</button>
 
@@ -174,16 +187,6 @@
 </div>
 <div class="np" id="np" aria-live="polite"></div>
 
-<div class="gallery" id="gallery" hidden role="dialog" aria-modal="true" aria-labelledby="galTitle">
-  <div class="gal-card">
-    <button class="poem-close" id="galClose" type="button" aria-label="Cerrar fotos">✕</button>
-    <div class="poem-flower" aria-hidden="true">📷</div>
-    <h2 id="galTitle"></h2>
-    <div class="gal-photos" id="galPhotos"></div>
-    <p class="gal-hint">Toca una foto para verla más grande</p>
-  </div>
-</div>
-<div class="lightbox" id="lightbox" hidden><img id="lightImg" alt=""></div>
 
 <div class="poem" id="poem" hidden role="dialog" aria-modal="true" aria-labelledby="poemTitle">
   <div class="poem-card">
@@ -199,35 +202,69 @@
 (() => {
   /* ============ CONFIGURACIÓN (edita aquí) ============ */
   const CONFIG = {
-    para: 'Mi amor',   // nombre o apodo de la persona
+    para: 'Mi amiga',  // nombre o apodo de tu amiga. Ej: 'Valeria'
     de: '',            // tu nombre (opcional)
-    fecha: '',         // 'AAAA-MM-DD' para mostrar el tiempo juntos (opcional). Ej: '2023-02-14'
-    carpeta: '',       // carpeta de las fotos. Vacío = junto a este archivo. Ej: 'fotos/'
-    prefijo: 'foto',   // nombres: foto01.jpeg ... foto18.jpeg (3 fotos por galaxia, 6 galaxias)
-    extension: 'jpeg',
-    galaxias: ['Nuestros comienzos', 'Risas infinitas', 'Aventuras juntos', 'Días especiales', 'Momentos que amo', 'Siempre contigo'],
+    fecha: '',         // 'AAAA-MM-DD' de cuando se conocieron, para mostrar el tiempo de amistad (opcional). Ej: '2019-08-15'
+    textoAnimacion: 'Una flor amarilla para ti', // texto que aparece durante la animación al pulsar el botón de inicio
     carpetaMusica: '', // carpeta de los .mp3 y sus portadas .png. Vacío = junto a este archivo. Ej: 'musica/'
     musicaAutomatica: true, // empieza a sonar en el primer toque (los navegadores exigen un toque para permitir sonido)
     canciones: [
-      { file: 'Princesa de mi corazón ❤️.mp3', portada: 'Princesa de mi corazón.png', titulo: 'Princesa de mi corazón ❤️', artista: 'El corazón', duracion: '6:54' },
-      { file: 'No Dejes Que Apaguen Tu Brillo.mp3', portada: 'No Dejes Que Apaguen Tu Brillo.png', titulo: 'No Dejes Que Apaguen Tu Brillo', artista: 'El corazón', duracion: '5:04' },
-      { file: 'PÁGINAS DE LUZ.mp3', portada: 'PÁGINAS DE LUZ.png', titulo: 'PÁGINAS DE LUZ', artista: 'El corazón', duracion: '5:58' },
-      { file: 'ESPÉRAME HASTA QUE LLEGUE.mp3', portada: 'ESPÉRAME HASTA QUE LLEGUE.png', titulo: 'ESPÉRAME HASTA QUE LLEGUE', artista: 'El corazón', duracion: '4:09' },
-      { file: 'CUANDO TÚ QUIERAS.mp3', portada: 'CUANDO TÚ QUIERAS.png', titulo: 'CUANDO TÚ QUIERAS', artista: 'El corazón', duracion: '5:07' },
-      { file: 'Cuando llegue a ti.mp3', portada: 'Cuando llegue a ti.png', titulo: 'Cuando llegue a ti', artista: 'El corazón', duracion: '6:11' },
-      { file: 'Si Me Dejas Conocerte.mp3', portada: 'Si Me Dejas Conocerte.png', titulo: 'Si Me Dejas Conocerte', artista: 'El corazón', duracion: '4:28' },
-      { file: 'La Chica de la Mirada Encantadora.mp3', portada: 'La Chica de la Mirada Encantadora.png', titulo: 'La Chica de la Mirada Encantadora', artista: 'El corazón', duracion: '4:57' },
-      { file: 'La Chica de la Mirada.mp3', portada: 'La Chica de la Mirada.png', titulo: 'La Chica de la Mirada', artista: 'El corazón', duracion: '3:27' },
-      { file: 'Donde Empieza Tu Luz.mp3', portada: 'Donde Empieza Tu Luz.png', titulo: 'Donde Empieza Tu Luz', artista: 'El corazón', duracion: '3:34' },
-      { file: 'Cuando Te Miro.mp3', portada: 'Cuando Te Miro.png', titulo: 'Cuando Te Miro', artista: 'El corazón', duracion: '4:29' },
-      { file: 'Me Gustas Más Cada Día.mp3', portada: 'Me Gustas Más Cada Día.png', titulo: 'Me Gustas Más Cada Día', artista: 'El corazón', duracion: '5:01' }
+      { file: 'Princesa de mi corazón ❤️.mp3', portada: 'Princesa de mi corazón.png', titulo: 'Princesa de mi corazón ❤️', artista: 'Para ti 🌻', duracion: '6:54' },
+      { file: 'No Dejes Que Apaguen Tu Brillo.mp3', portada: 'No Dejes Que Apaguen Tu Brillo.png', titulo: 'No Dejes Que Apaguen Tu Brillo', artista: 'Para ti 🌻', duracion: '5:04' },
+      { file: 'PÁGINAS DE LUZ.mp3', portada: 'PÁGINAS DE LUZ.png', titulo: 'PÁGINAS DE LUZ', artista: 'Para ti 🌻', duracion: '5:58' },
+      { file: 'ESPÉRAME HASTA QUE LLEGUE.mp3', portada: 'ESPÉRAME HASTA QUE LLEGUE.png', titulo: 'ESPÉRAME HASTA QUE LLEGUE', artista: 'Para ti 🌻', duracion: '4:09' },
+      { file: 'CUANDO TÚ QUIERAS.mp3', portada: 'CUANDO TÚ QUIERAS.png', titulo: 'CUANDO TÚ QUIERAS', artista: 'Para ti 🌻', duracion: '5:07' },
+      { file: 'Cuando llegue a ti.mp3', portada: 'Cuando llegue a ti.png', titulo: 'Cuando llegue a ti', artista: 'Para ti 🌻', duracion: '6:11' },
+      { file: 'Si Me Dejas Conocerte.mp3', portada: 'Si Me Dejas Conocerte.png', titulo: 'Si Me Dejas Conocerte', artista: 'Para ti 🌻', duracion: '4:28' },
+      { file: 'La Chica de la Mirada Encantadora.mp3', portada: 'La Chica de la Mirada Encantadora.png', titulo: 'La Chica de la Mirada Encantadora', artista: 'Para ti 🌻', duracion: '4:57' },
+      { file: 'La Chica de la Mirada.mp3', portada: 'La Chica de la Mirada.png', titulo: 'La Chica de la Mirada', artista: 'Para ti 🌻', duracion: '3:27' },
+      { file: 'Donde Empieza Tu Luz.mp3', portada: 'Donde Empieza Tu Luz.png', titulo: 'Donde Empieza Tu Luz', artista: 'Para ti 🌻', duracion: '3:34' },
+      { file: 'Cuando Te Miro.mp3', portada: 'Cuando Te Miro.png', titulo: 'Cuando Te Miro', artista: 'Para ti 🌻', duracion: '4:29' },
+      { file: 'Me Gustas Más Cada Día.mp3', portada: 'Me Gustas Más Cada Día.png', titulo: 'Me Gustas Más Cada Día', artista: 'Para ti 🌻', duracion: '5:01' }
     ],
-    carta: [           // {para} se reemplaza por el nombre de arriba
-      'Hay personas que llegan y cambian el color de todo, {para}. Tú llegaste y el mundo entero se volvió dorado.',
-      'Gracias por las risas sin motivo, por los abrazos que arreglan el día y por quedarte incluso cuando todo se complica.',
-      'Contigo aprendí que el amor no hace ruido: vive en los detalles, en una mirada, en un «¿ya llegaste?» dicho con alegría.',
-      'Si algún día dudas de cuánto vales, mira el cielo: cada estrella de esta galaxia brilla porque tú existes.',
-      'Te amo hoy, te amaré mañana, y seguiré eligiéndote en cada amanecer.'
+    textosShow: [      // frases que aparecen en grande, una a una, durante el espectáculo de luces
+      'Gracias por volver 🌻',
+      'Cada flor amarilla es un recuerdo contigo',
+      'Que este día te llene de luz',
+      'Una amistad que floreció de nuevo 💛',
+      'Eres luz en mis días',
+      'Del colegio a hoy, seguimos juntas en esta historia',
+      'Te mereces todas las flores amarillas del mundo'
+    ],
+    carta: [           // {para} se reemplaza por el nombre de arriba (puedes usarlo o no)
+      'Hay historias que parecen quedarse en el colegio, y sin embargo la vida siempre guarda sorpresas. Pasaron muchos años sin vernos, cada quien siguió su camino, y jamás imaginé que un día volveríamos a cruzarnos.',
+      'Todo comenzó con un simple mensaje por Messenger. Un «hola, ¿cómo estás?» que parecía pequeño, pero que abrió una puerta que llevaba años cerrada.',
+      'De ahí pasamos a WhatsApp, y las conversaciones se hicieron cada vez más largas: recuerdos del colegio, risas por cosas que ya casi habíamos olvidado y todo lo que vivimos mientras estuvimos lejos.',
+      'Lo más bonito es que no tuvimos que empezar de cero. Nos reconocimos enseguida, como si el tiempo solo hubiera hecho una pausa, y a la vez descubrí a la persona increíble en la que te has convertido.',
+      'Hoy, en el Día de las Flores Amarillas, quiero agradecerte por responder aquel mensaje y por darle una segunda oportunidad a nuestra historia. Ahora tenemos una amistad bonita, sincera y de las que se cuidan.',
+      'Gracias por volver, por quedarte y por seguir sumando recuerdos nuevos a los del colegio. Feliz Día de las Flores Amarillas, amiga.'
+    ],
+    historia: [        // botón 📖: la línea de tiempo de su amistad
+      '🎒 El colegio. Ahí empezó todo: pasillos, recreos, risas y cuadernos llenos de garabatos. Éramos apenas estudiantes con la cabeza llena de sueños.',
+      '🛤️ Los años en medio. La vida nos llevó por caminos distintos y, sin darnos cuenta, pasaron muchísimos años sin tener noticias entre nosotros.',
+      '💬 Un mensaje en Messenger. Un día, un simple «hola» lo cambió todo. Nadie imaginaba que ese mensaje nos devolvería una gran amistad.',
+      '📱 Y llegó WhatsApp. Las conversaciones se hicieron largas y frecuentes, y de pronto hablábamos todos los días como si nunca nos hubiéramos separado.',
+      '🌻 Hoy. Una amistad bonita, sincera y de las que se cuidan. Y lo mejor de todo: nuestra historia sigue escribiéndose.'
+    ],
+    mensajes: [        // botón 🌼: cada toque muestra uno distinto
+      'Que hoy tengas un día tan lindo como tu sonrisa.',
+      'Gracias por haber respondido aquel primer mensaje.',
+      'Ojalá esta amistad dure tantos años como los que estuvimos sin hablarnos... y muchos más.',
+      'Hay personas que se pierden y se reencuentran. Tú eres de las que la vida no quiso dejar ir.',
+      'Tu risa se escucha hasta en los mensajes de WhatsApp.',
+      'Eres de esas amistades con las que el tiempo no pasa: solo se pone en pausa.',
+      'Te mereces todas las flores amarillas del mundo.',
+      'Lo mejor de volver a hablarnos fue descubrir que seguimos entendiéndonos igual.',
+      'Ojalá tus mensajes sigan llegando a mi celular por muchos años más.',
+      'Si el colegio nos enseñó algo, es que las mejores amistades sobreviven a todo.',
+      'Hoy brillas más que cualquier girasol. No lo olvides.',
+      'Nunca es tarde para volver a empezar una amistad.',
+      'Gracias por ser luz en mis días, incluso a través de un chat.',
+      'Te deseo un año lleno de risas, buena música y mensajes que te alegren el día.',
+      'Prometo seguir respondiendo tus mensajes, aunque sea con un sticker.',
+      'Eres la prueba de que las buenas amistades siempre encuentran el camino de vuelta.',
+      'Un día un mensaje nos reunió; que mil más nos sigan acercando.',
+      'Gracias por hacer más bonito cada día con un simple «hola».'
     ]
   };
   /* ==================================================== */
@@ -265,11 +302,12 @@
     }`;
   const frag = `
     varying vec3 vColor; varying float vTw;
+    uniform float uFade;
     void main() {
       float d = length(gl_PointCoord - .5);
       if (d > .5) discard;
       float a = pow(1.0 - d*2.0, 2.0);
-      gl_FragColor = vec4(vColor * (.8 + .6*vTw), a);
+      gl_FragColor = vec4(vColor * (.8 + .6*vTw), a * uFade);
     }`;
 
   function makePoints(pos, col, size, phase, jitter) {
@@ -279,7 +317,7 @@
     g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
     g.setAttribute('aPhase', new THREE.BufferAttribute(phase, 1));
     const m = new THREE.ShaderMaterial({
-      uniforms: { uTime: U.uTime, uPR: U.uPR, uJit: { value: jitter } },
+      uniforms: { uTime: U.uTime, uPR: U.uPR, uJit: { value: jitter }, uFade: { value: 1 } },
       vertexShader: vert, fragmentShader: frag,
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
     });
@@ -436,7 +474,7 @@
   const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex('rgba(255,245,200,1)', 'rgba(255,190,40,.35)'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
   coreGlow.scale.set(44, 44, 1); coreGlow.position.y = 1; scene.add(coreGlow);
 
-  /* ---------- Corazón de partículas ---------- */
+  /* ---------- Corazón amarillo de partículas (el corazón de la amistad) ---------- */
   const heart = new THREE.Group();
   heart.position.set(0, 40, 0);
   scene.add(heart);
@@ -460,7 +498,7 @@
     }
     heart.add(makePoints(pos, col, size, ph, .35));
   }
-  const heartWords = ['Te Amo 💛', 'Mi Amor 💛', 'Siempre tú', 'Mi girasol 🌻', 'Eres mi luz', 'Mi vida'];
+  const heartWords = ['Feliz Día 🌻', 'Mi Amiga 💛', 'Amistad eterna', 'Mi girasol 🌻', 'Eres luz', 'Gracias por ser tú'];
   const heartTexs = heartWords.map(w => {
     const t = textTex(w, '#fff6c8'), wh = 4.4 * t.hRatio;
     return { tex: t.tex, w: wh * t.aspect, h: wh };
@@ -551,7 +589,7 @@
     scene.add(sparks);
   }
 
-  /* ---------- Objetos flotantes: girasoles, ramos y mensajes ---------- */
+  /* ---------- Objetos flotantes: girasoles y ramos de flores amarillas ---------- */
   const floaters = [];
   function addFloater(sprite, w, h, base, opts = {}) {
     sprite.position.copy(base);
@@ -588,133 +626,229 @@
 
   /* ---------- Poemas por frase ---------- */
   const POEMS = {
-    'te amo': [
-      'Te amo cuando amanece y cuando cae la noche,',
-      'en la calma, en la prisa, en cada despedida.',
-      'Te amo sin medida, sin reproche,',
-      'como se ama lo que da sentido a la vida.',
-      'Y si el mundo me preguntara mi motivo,',
-      'diría tu nombre y seguiría vivo.'
+    'feliz día': [
+      'Hoy el mundo se viste de amarillo,',
+      'y el sol se asoma para abrazarte.',
+      'Cada flor te presta un poco de su brillo,',
+      'porque nació con ganas de alegrarte.',
+      'Feliz día, amiga: que la vida te sonría',
+      'tanto como tú alegras cada día.'
     ],
-    'mi amor': [
-      'Mi amor, eres la casa donde el alma descansa,',
-      'el verso más bonito que el tiempo me dio.',
-      'Contigo hasta el silencio se vuelve esperanza,',
-      'y todo lo que temía, de pronto, se acabó.',
-      'Quédate en mis días, quédate en mi mirada,',
-      'que a tu lado la vida es la mejor jornada.'
+    'flores amarillas': [
+      'Si supieras cuántas flores amarillas',
+      'he juntado para ti en el corazón,',
+      'brotan como estrellas en las orillas',
+      'de cada recuerdo, de cada canción.',
+      'Recíbelas todas, amiga querida:',
+      'son mi forma de decirte que eres vida.'
     ],
-    'eres mi todo': [
-      'Eres el principio de todos mis caminos,',
-      'el mapa y la brújula de mi corazón.',
-      'Eres mi risa, mi paz, mis destinos,',
-      'mi cielo, mi tierra, mi única razón.',
-      'Si pudiera elegir de nuevo el momento,',
-      'te elegiría a ti, en cada aliento.'
-    ],
-    'eres preciosa': [
-      'No es solo tu sonrisa lo que me enamora,',
-      'es la luz que llevas dentro al caminar.',
-      'Eres preciosa en la noche y en la aurora,',
-      'y en cada gesto sabes iluminar.',
-      'Si la belleza tuviera un nombre y un hogar,',
-      'sería el tuyo, sin dudar.'
+    'mi mejor amiga': [
+      'De todas las personas que conocí,',
+      'la mejor decisión fue quedarme contigo.',
+      'Tú fuiste casa cuando me perdí',
+      'y luz cuando el camino estaba dormido.',
+      'Mi mejor amiga, mi cómplice, mi hogar:',
+      '¡qué suerte tan grande contigo contar!'
     ],
     'eres mi sol': [
-      'Eres mi sol cuando despierta el día,',
-      'el calor que abraza mi ser entero.',
-      'Todo florece si estás, vida mía,',
-      'y a tu lado el invierno es verano sincero.',
-      'Yo solo sé girar alrededor de ti,',
-      'porque donde tú brillas, soy feliz.'
+      'Eres mi sol en los días nublados,',
+      'el calor que llega sin avisar.',
+      'A tu lado los miedos se quedan callados',
+      'y aprendo de nuevo a respirar.',
+      'Gracias por brillar sin pedir nada:',
+      'con tu luz, mi vida queda alumbrada.'
     ],
     'mi girasol': [
-      'Como el girasol gira hacia la luz,',
-      'mi alma se vuelve siempre hacia ti,',
-      'y en tus ojos encuentra su virtud',
-      'de florecer cada vez que te vi.',
-      'Mi girasol, mi campo de verano,',
-      'contigo el año entero es primavera en mi mano.'
+      'Como el girasol busca la luz del día,',
+      'yo busco tu risa cuando algo va mal.',
+      'Tú conviertes en fiesta la melancolía',
+      'y en jardín cualquier lugar.',
+      'Mi girasol, mi amiga dorada:',
+      'contigo la vida es más soleada.'
     ],
-    'mi vida': [
-      'Mi vida, así te llamo sin pensar,',
-      'porque contigo aprendí a vivir.',
-      'Cada día contigo es un hogar,',
-      'cada abrazo tuyo, un porvenir.',
-      'No quiero más tesoro ni destino',
-      'que caminar contigo mi camino.'
+    'amiga incondicional': [
+      'Hay quien se va cuando llega el invierno,',
+      'y hay quien se queda a encender el fuego.',
+      'Tú eres de las que sostienen lo eterno:',
+      'la mano, el oído, el consuelo, el juego.',
+      'Amiga incondicional, gracias por tanto:',
+      'contigo hasta el silencio es un canto.'
     ],
-    'siempre tú': [
-      'Entre mil rostros, siempre tú.',
-      'Entre mil caminos, siempre tú.',
-      'Si el tiempo se acaba o vuelve a empezar,',
-      'si cambio de rumbo o de lugar,',
-      'mi corazón repite sin dudar:',
-      'siempre tú, siempre tú, siempre tú.'
+    'siempre contigo': [
+      'Si me caigo, sé que estás;',
+      'si me río, tú ríes más.',
+      'Si el camino se vuelve cuesta arriba,',
+      'contigo subo sin fatiga ni prisa.',
+      'Siempre contigo, en lo bueno y en lo incierto:',
+      'a tu lado cualquier rumbo es cierto.'
     ],
-    'eres mi luz': [
-      'Cuando la noche me esconde el camino,',
-      'tu voz enciende una estrella en mi interior.',
-      'Eres mi luz, mi faro, mi destino,',
-      'la llama que me abriga con su calor.',
-      'Nunca me pierdo si te tengo cerca,',
-      'tu luz es la casa que mi alma alberga.'
+    'eres luz': [
+      'Hay personas que encienden una vela',
+      'y otras que encienden todo un jardín.',
+      'Tú llegas y se disipa la niebla,',
+      'y hasta la sombra se vuelve jazmín.',
+      'Eres luz sin siquiera proponértelo:',
+      'basta con que llegues para iluminarlo.'
     ],
-    'te quiero': [
-      'Te quiero simple, sin prisa ni disfraz,',
-      'con lo mejor y lo peor de mí.',
-      'Te quiero en la risa y en la paz,',
-      'y en cada «quédate» que te pedí.',
-      'Te quiero hoy, te querré mañana,',
-      'cada vez que el sol se asoma en mi ventana.'
+    'gracias por existir': [
+      'Gracias por existir tal como eres,',
+      'con tus locuras y tu forma de ser.',
+      'Por tus consejos, tus risas, tus quereres,',
+      'y por enseñarme que hay a quién volver.',
+      'Hoy el mundo te aplaude con mil flores:',
+      'gracias por darle a mi vida colores.'
     ],
-    'mi universo': [
-      'Dicen que el universo es infinito,',
-      'yo digo que cabe en tu mirada.',
-      'Cada estrella es un suspiro escrito',
-      'por mi alma, por ti enamorada.',
-      'Y si las galaxias giran sin cesar,',
-      'es porque tú eres su centro y su lugar.'
+    'mi persona favorita': [
+      'De todas las personas de este mundo,',
+      'el destino me regaló a la mejor.',
+      'Contigo una hora pasa en un segundo,',
+      'y cualquier problema se hace menor.',
+      'Mi persona favorita, mi compañía,',
+      'la razón de que sea bonito mi día.'
     ],
     'eres increíble': [
-      'Eres increíble sin siquiera intentarlo,',
-      'fuerte en la caída, suave al abrazar.',
-      'Tu forma de ser me enseña a amarlo',
-      'todo lo que antes no sabía mirar.',
-      'Gracias por ser tan tú, tan clara y tan bella:',
-      'mi mayor suerte fue encontrar tu huella.'
+      'Eres increíble sin tratar de serlo,',
+      'fuerte cuando cae, dulce al abrazar.',
+      'Tu valentía me enseña a creerlo:',
+      'que se puede caer y volver a empezar.',
+      'Nunca lo olvides cuando dudes de ti:',
+      'vales más que un campo de flores, créeme a mí.'
     ],
     'mi razón de sonreír': [
       'No necesito motivos para sonreír,',
-      'te tengo a ti, y eso es suficiente.',
+      'me basta con verte llegar.',
       'Tu voz me arranca el gesto sin pedir,',
-      'tu risa me contagia de repente.',
+      'contigo me río sin parar.',
       'Eres mi razón de sonreír cada día,',
       'y de creer que la vida es alegría.'
     ],
-    'contigo todo': [
-      'Contigo todo tiene otro color,',
-      'la lluvia, el café, el domingo cualquiera.',
-      'Lo simple se convierte en resplandor',
-      'y hasta el miedo se vuelve primavera.',
-      'Contigo todo, y sin ti, nada:',
-      'esa es la cuenta más clara y sagrada.'
+    'contigo todo es mejor': [
+      'Contigo todo tiene otro color:',
+      'el café, la lluvia, un domingo cualquiera.',
+      'Lo simple se vuelve resplandor',
+      'y hasta lo difícil se aligera.',
+      'Contigo todo es mejor, amiga mía:',
+      'hasta un día gris parece alegría.'
     ],
-    'mi persona favorita': [
-      'De todas las personas del planeta,',
-      'mi corazón te eligió sin dudar.',
-      'Contigo la vida es una meta,',
-      'y el mejor lugar, a tu lado estar.',
-      'Mi persona favorita, mi compañía,',
-      'mi mejor pensamiento de cada día.'
+    'amistad eterna': [
+      'La amistad no se mide con los años,',
+      'sino con abrazos, con risas y lealtad.',
+      'Contigo comprendí que hay extraños',
+      'que se vuelven familia de verdad.',
+      'Que nuestra amistad, como un girasol,',
+      'crezca mirando siempre hacia el sol.'
     ],
-    'mi hogar eres tú': [
-      'No es el techo, ni la pared, ni la puerta,',
-      'el hogar es la voz que me espera.',
-      'Es tu abrazo la ventana abierta',
-      'y tu risa, mi primavera.',
-      'Donde estés tú, ahí quiero volver:',
-      'mi hogar eres tú, y así ha de ser.'
+    'brillas como el sol': [
+      'Brillas como el sol de mediodía,',
+      'sin pedir permiso para alumbrar.',
+      'Tu sola presencia trae alegría,',
+      'y hasta la sombra se pone a bailar.',
+      'Nunca dejes que nadie apague tu llama:',
+      'eres el sol de todo el que te ama.'
+    ],
+    'amiga de verdad': [
+      'Amiga de verdad es la que llega',
+      'cuando nadie más pregunta cómo estás.',
+      'La que no juzga, la que no se niega,',
+      'la que se queda y no se va jamás.',
+      'Tú eres esa amiga, y por eso hoy te digo:',
+      'gracias por ser mi hogar y mi abrigo.'
+    ],
+    'mi amiga': [
+      'Mi amiga, mi cómplice, mi confidente,',
+      'guardas mis secretos como se guardan las flores.',
+      'A tu lado la vida se siente diferente:',
+      'más ligera, más cálida, llena de colores.',
+      'Mi amiga, mi hermana elegida,',
+      'la mejor sorpresa que me dio la vida.'
+    ],
+    'gracias por ser tú': [
+      'Gracias por ser tú, sin máscaras ni prisas,',
+      'con tu risa grande y tu manera de abrazar.',
+      'Por convertir los días en sonrisas',
+      'y las penas en cosas que se pueden soportar.',
+      'Gracias por ser tú, y por quedarte:',
+      'no hay mejor regalo que poder encontrarte.'
+    ],
+    'del colegio a hoy': [
+      'Del patio del colegio a este cielo dorado,',
+      'cuánta vida cabe entre aquel tiempo y hoy.',
+      'Tomamos caminos, cada quien por su lado,',
+      'y el destino nos citó donde ahora estoy.',
+      'Del colegio a hoy, qué largo el camino,',
+      'y qué bonito volver a compartir el destino.'
+    ],
+    'un mensaje lo cambió todo': [
+      'Un mensaje pequeño, apenas un «hola»,',
+      'y el pasado tocó de nuevo a la puerta.',
+      'Lo que era un recuerdo, una foto vieja y sola,',
+      'se volvió conversación, risa, luz abierta.',
+      'Cuánto puede cambiar un solo mensaje:',
+      'a veces un saludo es todo un viaje.'
+    ],
+    'gracias por responder': [
+      'Gracias por responder aquel mensaje,',
+      'por no dejar mi «hola» en visto ni en olvido.',
+      'Pudiste seguir de largo en tu viaje,',
+      'y elegiste darle un lugar a lo vivido.',
+      'Por esa respuesta empezó lo que hoy tenemos:',
+      'una amistad hermosa, de las que no perdemos.'
+    ],
+    'amistad que volvió': [
+      'Hay amistades que se van sin despedirse,',
+      'y años después regresan como si nada.',
+      'Pueden alejarse, pero no desvanecerse,',
+      'porque siempre queda una puerta entreabierta y guardada.',
+      'La nuestra volvió, más fuerte y más bonita:',
+      'como flor que se abre cuando el sol la visita.'
+    ],
+    'nunca es tarde': [
+      'Nunca es tarde para escribir un «¿cómo estás?»,',
+      'ni para abrazar lo que el tiempo dejó quieto.',
+      'Nunca es tarde para volver atrás',
+      'y hallar que el cariño seguía en secreto.',
+      'Nunca es tarde: eso nos enseñó el tiempo,',
+      'y hoy lo celebramos en este firmamento.'
+    ],
+    'volvimos a encontrarnos': [
+      'Volvimos a encontrarnos sin buscarnos,',
+      'como se cruzan dos ríos en el mar.',
+      'Quién iba a decir que al recordarnos',
+      'un chat nos iba a volver a juntar.',
+      'Volvimos a encontrarnos, y qué fortuna:',
+      'hoy nos sobran las risas bajo el sol y la luna.'
+    ],
+    'hola de nuevo': [
+      'Hola de nuevo, dos palabras pequeñas',
+      'que abrieron un mundo detrás de la pantalla.',
+      'Trajeron recuerdos, risas, señas',
+      'de una amistad que el tiempo no acalla.',
+      'Hola de nuevo, compañía del ayer:',
+      'qué bonito es volverte a conocer.'
+    ],
+    'mensajes que alegran': [
+      'Hay mensajes que llegan y encienden el día,',
+      'un saludo, un sticker, un «¿cómo te fue?».',
+      'Tu nombre en la pantalla trae alegría,',
+      'y el cansancio se olvida sin saber por qué.',
+      'Gracias por cada chat, por cada risa escrita:',
+      'con tu amistad la vida se vuelve más bonita.'
+    ],
+    'recuerdos que no se olvidan': [
+      'Hay recuerdos que el tiempo no deshace,',
+      'quedan guardados como flor en un libro viejo.',
+      'Cada risa de aquel patio aún renace',
+      'cuando hablamos hoy, aunque estemos lejos.',
+      'Recuerdos que no se olvidan, amiga mía:',
+      'son la raíz de esta linda alegría.'
+    ],
+    'una amistad de las buenas': [
+      'No todas las amistades son iguales,',
+      'algunas son de paso, otras de raíz.',
+      'La nuestra resistió los años y los males,',
+      'y hoy florece más fuerte y feliz.',
+      'Una amistad de las buenas, de las que quedan:',
+      'gracias por ser de esas que nunca se enredan.'
     ]
   };
   const strip = s => s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
@@ -725,7 +859,7 @@
       'cada estrella se acerca a escuchar.',
       'Es tan simple y tan grande, tan divina,',
       'que no hay mejor forma de empezar.',
-      'Y si el amor cupiera en un instante,',
+      'Y si la amistad cupiera en un instante,',
       'sería este, tan claro y tan brillante.'
     ];
   }
@@ -739,9 +873,9 @@
         poemLines = document.getElementById('poemLines'), poemClose = document.getElementById('poemClose'),
         poemIcon = document.getElementById('poemIcon');
   let openedPhrase = null;
-  function showModal(title, lines, entry, isLetter) {
+  function showModal(title, lines, entry, isLetter, icon) {
     poemTitle.textContent = title;
-    poemIcon.textContent = isLetter ? '💌' : '🌻';
+    poemIcon.textContent = icon || (isLetter ? '💌' : '🌻');
     poemEl.classList.toggle('letter', !!isLetter);
     poemLines.textContent = '';
     lines.forEach((ln, i) => {
@@ -768,10 +902,13 @@
 
   /* ---------- Frases automáticas ---------- */
   const PHRASES = [
-    ['Te Amo 💛', 1.1], ['Mi Amor 💛', 1.3], ['Eres mi todo 💛', 1.1], ['Eres preciosa', 1],
-    ['Eres mi sol', .95], ['Mi girasol 🌻', 1.05], ['Mi vida', .95], ['Siempre tú', 1.1],
-    ['Eres mi luz', 1], ['Te quiero', 1], ['Mi universo', 1.05], ['Eres increíble', 1],
-    ['Mi razón de sonreír', .95], ['Contigo todo', .95], ['Mi persona favorita', .9], ['Mi hogar eres tú', .9]
+    ['Feliz Día 🌻', 1.2], ['Flores Amarillas 🌼', 1.05], ['Mi mejor amiga 💛', 1], ['Eres mi sol', .95],
+    ['Mi girasol 🌻', 1.05], ['Amiga incondicional', .9], ['Siempre contigo', 1.1], ['Eres luz', 1],
+    ['Gracias por existir', .95], ['Mi persona favorita', .9], ['Eres increíble', 1], ['Mi razón de sonreír', .95],
+    ['Contigo todo es mejor', .9], ['Amistad eterna', 1], ['Brillas como el sol', .95], ['Amiga de verdad', .95],
+    ['Del colegio a hoy 🎒', 1], ['Un mensaje lo cambió todo 💬', .85], ['Gracias por responder', .95], ['Amistad que volvió 💛', 1],
+    ['Nunca es tarde', 1.05], ['Volvimos a encontrarnos', .85], ['Hola de nuevo 👋', 1.05], ['Mensajes que alegran', .9],
+    ['Recuerdos que no se olvidan', .9], ['Una amistad de las buenas', .95]
   ];
   const textColors = ['#fff6c8', '#ffe066', '#ffffff', '#ffd54a'];
   const texCache = new Map();
@@ -871,6 +1008,17 @@
     x.bezierCurveTo(66, 36, 74, 26, 88, 26); x.bezierCurveTo(114, 26, 118, 68, 64, 104); x.fill();
     return canvasTex(c);
   }
+  function noteTex() {
+    const c = newCanvas(96, 128), x = c.getContext('2d');
+    x.shadowColor = 'rgba(255,205,60,.9)'; x.shadowBlur = 14;
+    x.fillStyle = '#ffe066';
+    x.save(); x.translate(30, 100); x.rotate(-.25);
+    x.beginPath(); x.ellipse(0, 0, 21, 15, 0, 0, TAU); x.fill(); x.restore();
+    x.fillRect(46, 12, 8, 90);
+    x.beginPath(); x.moveTo(54, 12); x.quadraticCurveTo(92, 26, 78, 56); x.quadraticCurveTo(60, 40, 54, 48); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(54, 34); x.quadraticCurveTo(86, 46, 74, 72); x.quadraticCurveTo(58, 58, 54, 64); x.closePath(); x.fill();
+    return canvasTex(c);
+  }
   function petalTex() {
     const c = newCanvas(64, 128), x = c.getContext('2d');
     const g = x.createLinearGradient(0, 8, 0, 120); g.addColorStop(0, '#ffe44d'); g.addColorStop(1, '#ff9f00');
@@ -890,14 +1038,32 @@
   // Mariposas doradas
   const butterflies = [];
   const bfTexs = [butterflyTex('#ff9f00', '#ffe066'), butterflyTex('#ffb300', '#fff2a8'), butterflyTex('#e88a00', '#ffd54a')];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 16; i++) {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: bfTexs[i % 3], transparent: true, depthWrite: false }));
     const size = rand(5, 8); scene.add(sp);
     butterflies.push({ s: sp, size, c: new THREE.Vector3(rand(-60, 60), rand(0, 48), rand(-40, 60)),
       rx: rand(12, 30), ry: rand(4, 10), rz: rand(12, 30), a: rand(.25, .5), ph: rand(0, TAU), flap: rand(9, 14) });
   }
 
-  // Corazones que suben desde la galaxia
+  // Luciérnagas doradas: puntitos que titilan y flotan cerca del suelo
+  const fireflies = [];
+  const flyTex = glowTex('rgba(255,244,180,1)', 'rgba(255,200,60,.4)');
+  for (let i = 0; i < 42; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: flyTex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    const size = rand(1.2, 2.8); scene.add(sp);
+    fireflies.push({ s: sp, size, c: new THREE.Vector3(rand(-95, 95), rand(-8, 42), rand(-95, 95)),
+      rx: rand(6, 24), ry: rand(3, 13), rz: rand(6, 24), sp2: rand(.12, .38), ph: rand(0, TAU), blink: rand(1.4, 3.6) });
+  }
+
+  // Notas musicales que suben cuando suena la música
+  const risingNotes = [], nTex = noteTex();
+  for (let i = 0; i < 16; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: nTex, transparent: true, opacity: 0, depthWrite: false }));
+    const ang = rand(0, TAU), r = rand(6, 42), size = rand(2, 3.8); scene.add(sp);
+    risingNotes.push({ s: sp, bx: Math.cos(ang) * r, bz: Math.sin(ang) * r, y: rand(30, 72), v: rand(4, 8.5), ph: rand(0, TAU), size });
+  }
+
+  // Corazones amarillos que suben desde la galaxia
   const rising = [], hTex = heartTex();
   for (let i = 0; i < 28; i++) {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: hTex, transparent: true, opacity: 0, depthWrite: false }));
@@ -934,7 +1100,43 @@
     ringGroup.add(makePoints(pos, col, size, ph, .15));
   }
 
-  // Estrellas fugaces
+  // Constelación en forma de corazón que aparece de vez en cuando en el cielo
+  const constGroup = new THREE.Group();
+  constGroup.position.set(-40, 130, -260);
+  constGroup.rotation.z = .15;
+  scene.add(constGroup);
+  const constPts = [];
+  const CN = 40;
+  for (let i = 0; i <= CN; i++) {
+    const a = i / CN * TAU;
+    const hx = 16 * Math.pow(Math.sin(a), 3);
+    const hy = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+    constPts.push(new THREE.Vector3(hx * 3.2, (hy + 2) * 3.2, 0));
+  }
+  const constGeo = new THREE.BufferGeometry().setFromPoints(constPts);
+  const constLine = new THREE.LineLoop(constGeo, new THREE.LineBasicMaterial({ color: 0xffd76a, transparent: true, opacity: 0, fog: false }));
+  constGroup.add(constLine);
+  const csN = constPts.length, csPos = new Float32Array(csN * 3), csCol = new Float32Array(csN * 3), csSize = new Float32Array(csN), csPh = new Float32Array(csN);
+  constPts.forEach((p, i) => {
+    csPos.set([p.x, p.y, p.z], i * 3);
+    csCol.set([1, .92, .6], i * 3);
+    csSize[i] = rand(3, 5.5); csPh[i] = Math.random();
+  });
+  const constStars = makePoints(csPos, csCol, csSize, csPh, .3);
+  constGroup.add(constStars);
+  function updateConstellation(t) {
+    const period = 16, cyc = (t % period) / period;
+    let op = 0;
+    if (cyc > .08 && cyc < .62) {
+      const local = (cyc - .08) / .54;
+      op = Math.sin(Math.PI * local);
+    }
+    constLine.material.opacity = op * .8;
+    constStars.material.uniforms.uFade.value = op;
+    constGroup.rotation.y = Math.sin(t * .05) * .1;
+  }
+
+  // Estrellas fugaces (con estela de chispas)
   const stTex = streakTex();
   const shooters = Array.from({ length: 3 }, () => {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: stTex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
@@ -992,7 +1194,7 @@
       let x = 16 * Math.pow(Math.sin(t), 3) / 17, y = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t) + 2) / 17;
       const k = Math.random() < .35 ? Math.sqrt(Math.random()) : 1 - Math.pow(Math.random(), 3) * .06;
       x = x * k + gauss() * .02; y = y * k + gauss() * .02;
-      return [x, y, gauss() * .08, ...mixC([1, .35, .5], [1, .85, .55], Math.random())];
+      return [x, y, gauss() * .08, ...mixC([1, .78, .15], [1, .95, .55], Math.random())];
     }),
     'girasol': N => buildShape(N, i => {
       const nc = N * .35;
@@ -1041,7 +1243,7 @@
     }),
     'flor': N => buildShape(N, () => {
       const th = Math.random() * TAU, r = Math.abs(Math.cos(4 * th)), k = Math.random() < .5 ? Math.sqrt(Math.random()) : 1;
-      return [r * Math.cos(th) * k + gauss() * .01, r * Math.sin(th) * k + gauss() * .01, gauss() * .05, ...mixC([1, .85, .4], [1, .4, .65], k)];
+      return [r * Math.cos(th) * k + gauss() * .01, r * Math.sin(th) * k + gauss() * .01, gauss() * .05, ...mixC([1, .88, .3], [1, .55, .08], k)];
     }),
     'luna': N => buildShape(N, () => {
       let x, y;
@@ -1049,8 +1251,36 @@
       while (x * x + y * y > 1 || (x - .4) * (x - .4) + (y - .1) * (y - .1) < .78 * .78);
       return [x, y, gauss() * .05, ...mixC([1, .95, .75], [1, .8, .4], (x + 1) / 2)];
     }),
-    'TE AMO': textShape('TE AMO'),
-    'MI AMOR': textShape('MI AMOR')
+    'sol': N => buildShape(N, () => {
+      if (Math.random() < .55) {
+        const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * .42;
+        return [Math.cos(a) * r, Math.sin(a) * r, gauss() * .05, ...mixC([1, .95, .6], [1, .75, .2], r / .42)];
+      }
+      const rays = 12, e = Math.floor(Math.random() * rays), a = e / rays * TAU + gauss() * .05;
+      const s = Math.random(), r = .5 + s * .55, w = (1 - s) * .07;
+      const perp = a + Math.PI / 2, off = gauss() * w;
+      const x = Math.cos(a) * r + Math.cos(perp) * off, y = Math.sin(a) * r + Math.sin(perp) * off;
+      return [x, y, gauss() * .04, ...mixC([1, .8, .25], [1, .55, .05], s)];
+    }),
+    'nota': N => buildShape(N, () => {
+      const part = Math.random();
+      if (part < .5) {
+        const a = Math.random() * TAU, r = Math.sqrt(Math.random());
+        const ex = Math.cos(a) * r * .34, ey = Math.sin(a) * r * .22, ang = -.35;
+        const rx = ex * Math.cos(ang) - ey * Math.sin(ang), ry = ex * Math.sin(ang) + ey * Math.cos(ang);
+        return [rx - .15, ry - .55, gauss() * .05, ...mixC([1, .85, .3], [1, .6, .1], r)];
+      } else if (part < .85) {
+        const s = Math.random();
+        return [.19 + gauss() * .02, -.55 + s * .95, gauss() * .05, ...mixC([1, .9, .5], [1, .7, .2], s)];
+      } else {
+        const s = Math.random();
+        const x = .19 + s * .35 * Math.sin(s * 2.4), y = .4 - s * .55;
+        return [x + gauss() * .02, y + gauss() * .02, gauss() * .05, ...mixC([1, .95, .6], [1, .75, .3], s)];
+      }
+    }),
+    'FELIZ DÍA': textShape('FELIZ DÍA'),
+    'AMIGA': textShape('AMIGA'),
+    'GRACIAS': textShape('GRACIAS')
   };
 
   // --- Esculturas que se transforman (GPU) ---
@@ -1108,8 +1338,8 @@
     S.mat.uniforms.uMix.value = 0;
     S.idx = S.next; S.morphing = false; S.t0 = t;
   }
-  makeSculpture(new THREE.Vector3(52, 22, -6), 17, ['corazón', 'girasol', 'mariposa', 'infinito', 'estrella', 'TE AMO', 'planeta', 'espiral', 'flor', 'luna', 'MI AMOR'], 0);
-  makeSculpture(new THREE.Vector3(-52, 26, -6), 17, ['mariposa', 'flor', 'TE AMO', 'luna', 'girasol', 'infinito', 'MI AMOR', 'estrella', 'planeta', 'corazón', 'espiral'], 3);
+  makeSculpture(new THREE.Vector3(52, 22, -6), 17, ['girasol', 'corazón', 'mariposa', 'infinito', 'estrella', 'FELIZ DÍA', 'planeta', 'espiral', 'flor', 'luna', 'sol', 'AMIGA', 'nota', 'GRACIAS'], 0);
+  makeSculpture(new THREE.Vector3(-52, 26, -6), 17, ['mariposa', 'flor', 'FELIZ DÍA', 'luna', 'girasol', 'infinito', 'AMIGA', 'nota', 'GRACIAS', 'estrella', 'sol', 'planeta', 'corazón', 'espiral'], 3);
 
   const _sp = new THREE.Vector3();
   function tapSculpture(cx, cy) {
@@ -1126,9 +1356,9 @@
   }
 
   // --- Figuras pequeñas flotantes hechas de partículas ---
-  const figs = [], figNames = ['corazón', 'girasol', 'mariposa', 'infinito', 'estrella', 'planeta', 'espiral', 'flor', 'luna'];
+  const figs = [], figNames = ['corazón', 'girasol', 'mariposa', 'infinito', 'estrella', 'planeta', 'espiral', 'flor', 'luna', 'sol', 'nota'];
   const FIG_N = Math.round(900 * Q);
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 14; i++) {
     const d = SHAPES[figNames[i % figNames.length]](FIG_N);
     const size = new Float32Array(FIG_N), ph = new Float32Array(FIG_N);
     for (let j = 0; j < FIG_N; j++) { size[j] = rand(.7, 1.6); ph[j] = Math.random(); }
@@ -1163,13 +1393,12 @@
     return makePoints(pos, col, size, ph, 0);
   }
 
-  // 6 mini galaxias lejanas (una por cada 3 fotos): al tocarlas se abre su galería
+  // Galaxias lejanas decorativas
   const minis = [];
   const GAL_SLOTS = [
     [-150, 30, -170, 34], [-95, 0, -240, 38], [-35, 58, -255, 32],
     [45, -8, -250, 40], [105, 48, -225, 34], [155, 18, -165, 36]
   ];
-  const camLabel = textTex('📷', '#fff6c8');
   GAL_SLOTS.forEach(([x, y, z, R], i) => {
     const pal = PAL[palNames[i % palNames.length]];
     const pts = miniGalaxy(Math.round(2800 * Q), R, 2 + (i % 3), rand(4, 7), .06, pal);
@@ -1178,30 +1407,8 @@
     const rgb = pal[1].map(v => Math.round(v * 255)).join(',');
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(`rgba(${rgb},.55)`, `rgba(${rgb},.12)`), transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
     halo.scale.set(R * 3.4, R * 3.4, 1); halo.position.set(x, y, z - 1); scene.add(halo);
-    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: camLabel.tex, transparent: true, opacity: .8, depthWrite: false, fog: false }));
-    const lh = R * .5 * camLabel.hRatio; label.scale.set(lh * camLabel.aspect, lh, 1); label.position.set(x, y + R * 1.05, z); scene.add(label);
-    minis.push({ pts, group: tilt, halo, label, lh, R, idx: i, spin: rand(.05, .15), hover: 0, hovered: false });
+    minis.push({ pts, halo, idx: i, spin: rand(.05, .15) });
   });
-  function galaxyHit(cx, cy) {
-    let best = null, bd = 1e9;
-    for (const m of minis) {
-      _sp.copy(m.group.position).project(camera);
-      if (_sp.z > 1) continue;
-      const sx = (_sp.x * .5 + .5) * innerWidth, sy = (-_sp.y * .5 + .5) * innerHeight;
-      const d = camera.position.distanceTo(m.group.position);
-      const px = m.R / (d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * innerHeight / 2;
-      const dist = Math.hypot(cx - sx, cy - sy);
-      if (dist < Math.max(px * 1.1, 34) && dist < bd) { bd = dist; best = m; }
-    }
-    return best;
-  }
-  function tapGalaxy(cx, cy) {
-    const m = galaxyHit(cx, cy);
-    if (!m) return false;
-    burst(cx, cy);
-    openGallery(m.idx);
-    return true;
-  }
 
   // Universos dentro de burbujas
   const orbs = [];
@@ -1225,7 +1432,7 @@
     orbs.push({ grp, shell, gal, by: y, ph: i * 1.7 });
   });
 
-  // Ondas de amor que se expanden desde el centro
+  // Ondas de luz que se expanden desde el centro
   const waveTex = (() => {
     const c = newCanvas(512, 512), x = c.getContext('2d');
     const g = x.createRadialGradient(256, 256, 180, 256, 256, 256);
@@ -1234,7 +1441,7 @@
     x.fillStyle = g; x.fillRect(0, 0, 512, 512);
     return canvasTex(c);
   })();
-  const waves = [0, 4.5].map(off => {
+  const waves = [0, 3, 6, 9].map(off => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({ map: waveTex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
     m.rotation.x = -Math.PI / 2; m.position.y = .3; m.visible = false; scene.add(m);
@@ -1256,11 +1463,7 @@
     }
     for (const m of minis) {
       m.pts.rotation.y += m.spin * dt;
-      m.hover += ((m.hovered ? 1 : 0) - m.hover) * .15;
-      m.pts.scale.setScalar(1 + .08 * m.hover);
-      m.halo.material.opacity = (.26 + .3 * m.hover) * (.85 + .15 * Math.sin(t * 2 + m.idx));
-      m.label.material.opacity = .55 + .3 * Math.sin(t * 2.2 + m.idx * 1.3) + .15 * m.hover;
-      const ls = 1 + .25 * m.hover; m.label.scale.set(m.lh * camLabel.aspect * ls, m.lh * ls, 1);
+      m.halo.material.opacity = .28 * (.85 + .15 * Math.sin(t * 2 + m.idx));
     }
     for (const o of orbs) {
       o.shell.rotation.y += dt * .12; o.gal.rotation.y += dt * .35;
@@ -1275,7 +1478,7 @@
     }
   }
 
-  // Estallidos de corazones (al tocar el cielo) y estela del cursor
+  // Estallidos de corazones amarillos (al tocar el cielo) y estela del cursor
   const sparkTex = glowTex('rgba(255,245,190,1)', 'rgba(255,190,40,.45)');
   function mkPart(tex, additive) {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false,
@@ -1284,7 +1487,7 @@
     return { s: sp, on: false, v: new THREE.Vector3(), t0: 0, life: 1, size: 1 };
   }
   const pHearts = Array.from({ length: 60 }, () => mkPart(hTex, false));
-  const pSparks = Array.from({ length: 140 }, () => mkPart(sparkTex, true));
+  const pSparks = Array.from({ length: 160 }, () => mkPart(sparkTex, true));
   function emit(pool, pos, vel, size, life) {
     const p = pool.find(x => !x.on); if (!p) return;
     p.on = true; p.s.visible = true; p.s.position.copy(pos); p.v.copy(vel); p.size = size; p.life = life; p.t0 = now;
@@ -1336,11 +1539,30 @@
     updateHeartWord(t);
     updateParticles(t, dt);
     updateUniverse(t, dt);
+    updateConstellation(t);
     for (const b of butterflies) {
       const u = t * b.a + b.ph;
       b.s.position.set(b.c.x + Math.cos(u) * b.rx, b.c.y + Math.sin(u * 1.7) * b.ry, b.c.z + Math.sin(u) * b.rz);
       b.s.scale.set(b.size * (.25 + .75 * Math.abs(Math.cos(t * b.flap + b.ph))), b.size * .78, 1);
       b.s.material.rotation = Math.sin(u * 1.7) * .4;
+    }
+    for (const fl of fireflies) {
+      const u = t * fl.sp2 + fl.ph;
+      fl.s.position.set(fl.c.x + Math.cos(u) * fl.rx, fl.c.y + Math.sin(u * 1.3) * fl.ry + Math.sin(t * .5 + fl.ph) * 2, fl.c.z + Math.sin(u) * fl.rz);
+      const blink = .2 + .8 * Math.max(0, Math.sin(t * fl.blink + fl.ph));
+      fl.s.material.opacity = blink * .85;
+      const sc = fl.size * (1 + .3 * blink); fl.s.scale.set(sc, sc, 1);
+    }
+    for (const n of risingNotes) {
+      if (musicPlaying) {
+        n.y += n.v * dt;
+        if (n.y > 96) { n.y = 30; const a = rand(0, TAU), r = rand(6, 42); n.bx = Math.cos(a) * r; n.bz = Math.sin(a) * r; }
+        n.s.position.set(n.bx + Math.sin(t * 1.1 + n.ph) * 3, n.y, n.bz);
+        n.s.material.rotation = Math.sin(t * .6 + n.ph) * .3;
+        n.s.material.opacity = clamp01((n.y - 30) / 10) * clamp01((96 - n.y) / 16) * .85;
+      } else if (n.s.material.opacity > 0.001) {
+        n.s.material.opacity *= 0.94;
+      }
     }
     for (const h of rising) {
       h.y += h.v * dt;
@@ -1364,13 +1586,355 @@
       o.s.material.rotation = t * .3 + o.i;
     }
     ringGroup.rotation.y -= dt * .04;
-    if (t > nextShoot) { shoot(t); nextShoot = t + rand(2.5, 6); }
+    if (t > nextShoot) { shoot(t); nextShoot = t + rand(1.8, 4.2); }
     for (const st of shooters) {
       if (!st.on) continue;
       const age = t - st.t0;
       if (age > 1.1) { st.on = false; st.s.visible = false; continue; }
       st.s.position.addScaledVector(st.v, dt);
       st.s.material.opacity = Math.sin(Math.PI * age / 1.1);
+      if (Math.random() < .35) {
+        emit(pSparks, st.s.position.clone(), new THREE.Vector3(rand(-2, 2), rand(-2, 2), rand(-2, 2)), rand(1, 2), rand(.3, .5));
+      }
+    }
+  }
+
+  /* ================= ESPECTÁCULO: animaciones que siguen tras pulsar el botón =================
+     Cortinas de aurora dorada · cintas de luz · farolitos que suben · fuegos artificiales
+     (esfera, corazón, anillo, flor, sauce) · girasol gigante que florece en el cielo ·
+     onda de corazones desde el núcleo · frases cinematográficas · vuelo de cámara inicial.
+     Toca el cielo para lanzar tus propios fuegos artificiales.                            */
+  const REDUCE = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const capEl = document.getElementById('showCaption');
+  let capTimer = 0;
+  function setCaption(txt, ms) {
+    capEl.textContent = txt; capEl.classList.add('show');
+    clearTimeout(capTimer); capTimer = setTimeout(() => capEl.classList.remove('show'), ms || 5200);
+  }
+  const _dir = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
+  function camBasis() {
+    camera.updateMatrixWorld();
+    camera.getWorldDirection(_dir);
+    _right.crossVectors(_dir, camera.up).normalize();
+    _up.crossVectors(_right, _dir).normalize();
+  }
+  // punto del espacio a distancia d de la cámara; nx, ny en [-1, 1] sobre la pantalla
+  function viewPoint(d, nx, ny) {
+    camBasis();
+    const halfH = d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), halfW = halfH * camera.aspect;
+    return camera.position.clone().addScaledVector(_dir, d).addScaledVector(_right, nx * halfW).addScaledVector(_up, ny * halfH);
+  }
+  const addBlend = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false };
+
+  /* --- 1. Cortinas de aurora dorada --- */
+  const auroras = [];
+  {
+    const vs = `varying vec2 vUv; uniform float uTime, uSeed;
+      void main() {
+        vUv = uv; vec3 p = position;
+        p.y += sin(uv.x * 9.0 + uTime * .5 + uSeed) * 7.0 + sin(uv.x * 23.0 - uTime * .8 + uSeed) * 2.5;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`;
+    const fs = `varying vec2 vUv; uniform float uTime, uSeed, uFade; uniform vec3 uC1, uC2;
+      void main() {
+        float v = vUv.y;
+        float band = smoothstep(0.0, .3, v) * pow(1.0 - v, 1.4);
+        float streak = .5 + .5 * sin(vUv.x * 80.0 + sin(vUv.x * 13.0 + uTime * .6 + uSeed) * 4.0 + uTime * .9);
+        float sway = .55 + .45 * sin(vUv.x * 7.0 + uTime * .35 + uSeed * 2.0);
+        float a = band * (.35 + .65 * streak) * sway * uFade * .5;
+        gl_FragColor = vec4(mix(uC1, uC2, v), a);
+      }`;
+    [[0, [1, .8, .2], [1, .95, .6]], [2.2, [1, .55, .12], [1, .85, .4]], [4.3, [1, .9, .45], [1, .7, .25]]].forEach(([th, c1, c2], i) => {
+      const m = new THREE.ShaderMaterial({
+        uniforms: { uTime: U.uTime, uSeed: { value: i * 2.7 }, uFade: { value: 0 },
+                    uC1: { value: new THREE.Vector3(...c1) }, uC2: { value: new THREE.Vector3(...c2) } },
+        vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+      });
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(300 + i * 12, 300 + i * 12, 100, 96, 14, true, th, 1.5), m);
+      mesh.position.y = 70 + i * 8; mesh.frustumCulled = false; scene.add(mesh);
+      auroras.push(m);
+    });
+  }
+
+  /* --- 2. Cintas de luz que bailan alrededor de la galaxia --- */
+  const ribbons = [];
+  function makeRibbon(n, cA, cB, big, path) {
+    const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), size = new Float32Array(n), ph = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const k = i / n; col.set(mixC(cA, cB, k), i * 3);
+      size[i] = big * Math.pow(1 - k, 1.2) + .5; ph[i] = Math.random();
+    }
+    const pts = makePoints(pos, col, size, ph, 0);
+    pts.visible = false; pts.material.uniforms.uFade.value = 0; scene.add(pts);
+    ribbons.push({ pts, n, path, pos });
+  }
+  makeRibbon(Math.round(260 * Q), [1, .98, .8], [1, .6, .1], 7, (a, o) => {
+    const r = 58 + 12 * Math.sin(a * 2.3);
+    o[0] = Math.cos(a) * r; o[1] = 24 + 20 * Math.sin(a * 1.3) + 8 * Math.sin(a * 3.1); o[2] = Math.sin(a) * r;
+  });
+  makeRibbon(Math.round(260 * Q), [1, .95, .7], [1, .7, .2], 6, (a, o) => {
+    const r = 80 + 10 * Math.sin(a * 1.7);
+    o[0] = Math.cos(-a * .8 + 2) * r; o[1] = 10 + 28 * Math.sin(a * 1.1 + 1.5); o[2] = Math.sin(-a * .8 + 2) * r;
+  });
+  makeRibbon(Math.round(220 * Q), [1, 1, .9], [1, .8, .3], 6, (a, o) => {
+    o[0] = Math.sin(a) * 40; o[1] = 42 + Math.sin(a * 2) * 16; o[2] = Math.cos(a) * 40 * Math.cos(a * .5);
+  });
+
+  /* --- 3. Farolitos dorados que suben al cielo --- */
+  const lanternBody = (() => {
+    const c = newCanvas(128, 160), x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 20, 0, 140);
+    g.addColorStop(0, '#ffdf6b'); g.addColorStop(.5, '#ffb01f'); g.addColorStop(1, '#ff8a00');
+    x.shadowColor = 'rgba(255,190,50,.9)'; x.shadowBlur = 18; x.fillStyle = g;
+    x.beginPath(); x.moveTo(34, 26); x.lineTo(94, 26); x.quadraticCurveTo(116, 84, 88, 134); x.lineTo(40, 134); x.quadraticCurveTo(12, 84, 34, 26); x.fill();
+    x.shadowBlur = 0; x.fillStyle = 'rgba(120,60,0,.85)'; x.fillRect(32, 20, 64, 8); x.fillRect(38, 132, 52, 8);
+    const ig = x.createRadialGradient(64, 90, 2, 64, 90, 46);
+    ig.addColorStop(0, 'rgba(255,255,230,.95)'); ig.addColorStop(1, 'rgba(255,220,100,0)');
+    x.fillStyle = ig; x.fillRect(20, 30, 88, 104);
+    x.strokeStyle = 'rgba(160,80,0,.45)'; x.lineWidth = 2;
+    [-18, 0, 18].forEach(dx => { x.beginPath(); x.moveTo(64 + dx * .4, 28); x.quadraticCurveTo(64 + dx * 1.7, 84, 64 + dx * 1.2, 132); x.stroke(); });
+    return canvasTex(c);
+  })();
+  const lanterns = [];
+  for (let i = 0; i < Math.round(28 * Q); i++) {
+    const body = new THREE.Sprite(new THREE.SpriteMaterial({ map: lanternBody, transparent: true, opacity: 0, depthWrite: false, fog: false }));
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: flyTex, opacity: 0, ...addBlend }));
+    scene.add(glow); scene.add(body);
+    const a = rand(0, TAU), r = rand(28, 125);
+    lanterns.push({ body, glow, size: rand(4.5, 8), bx: Math.cos(a) * r, bz: Math.sin(a) * r, y: rand(-30, 100),
+                    v: rand(2.2, 4.4), ph: rand(0, TAU), born: rand(3, 16) });
+  }
+
+  /* --- 4. Fuegos artificiales (esfera, corazón, anillo, flor y sauce) --- */
+  const FW_N = Math.round(1600 * Q);
+  const fwPos = new Float32Array(FW_N * 3), fwVel = new Float32Array(FW_N * 3), fwCol = new Float32Array(FW_N * 3),
+        fwSize = new Float32Array(FW_N), fwK = new Float32Array(FW_N).fill(1), fwBorn = new Float32Array(FW_N),
+        fwLife = new Float32Array(FW_N).fill(1), fwGrav = new Float32Array(FW_N);
+  let fwHead = 0;
+  const fwGeo = new THREE.BufferGeometry();
+  fwGeo.setAttribute('position', new THREE.BufferAttribute(fwPos, 3).setUsage(THREE.DynamicDrawUsage));
+  fwGeo.setAttribute('aColor', new THREE.BufferAttribute(fwCol, 3).setUsage(THREE.DynamicDrawUsage));
+  fwGeo.setAttribute('aSize', new THREE.BufferAttribute(fwSize, 1).setUsage(THREE.DynamicDrawUsage));
+  fwGeo.setAttribute('aK', new THREE.BufferAttribute(fwK, 1).setUsage(THREE.DynamicDrawUsage));
+  const fwMat = new THREE.ShaderMaterial({
+    uniforms: { uPR: U.uPR },
+    vertexShader: `
+      attribute vec3 aColor; attribute float aSize; attribute float aK;
+      uniform float uPR; varying vec3 vColor; varying float vA;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        float k = clamp(aK, 0.0, 1.0);
+        vA = k >= 1.0 ? 0.0 : pow(1.0 - k, 1.4) * (.75 + .25 * sin(k * 90.0 + position.x));
+        gl_PointSize = aSize * uPR * (1.0 - .35 * k) * (300.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+        vColor = aColor;
+      }`,
+    fragmentShader: `
+      varying vec3 vColor; varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - .5);
+        if (d > .5) discard;
+        float a = pow(1.0 - d * 2.0, 2.0);
+        gl_FragColor = vec4(vColor * 1.3, a * vA);
+      }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const fwPoints = new THREE.Points(fwGeo, fwMat); fwPoints.frustumCulled = false; scene.add(fwPoints);
+
+  const fwPals = [[[1, .82, .28], [1, .97, .72]], [[1, .58, .1], [1, .85, .35]], [[1, 1, .88], [1, .88, .45]], [[1, .72, .18], [1, .45, .12]]];
+  const FW_TYPES = ['sphere', 'heart', 'ring', 'willow', 'flower', 'sphere'];
+  const flashes = Array.from({ length: 4 }, () => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkTex, opacity: 0, ...addBlend }));
+    s.visible = false; scene.add(s); return { s, t0: 0, on: false };
+  });
+  function fireworkAt(c, type) {
+    if (REDUCE) return;
+    type = type || FW_TYPES[Math.floor(Math.random() * FW_TYPES.length)];
+    const pal = fwPals[Math.floor(Math.random() * fwPals.length)];
+    camBasis();
+    const n = Math.round((type === 'willow' ? 190 : 210) * Q), grav = type === 'willow' ? 15 : 8;
+    for (let j = 0; j < n; j++) {
+      const i = fwHead; fwHead = (fwHead + 1) % FW_N;
+      let A, B, C;
+      if (type === 'heart') {
+        const t2 = Math.random() * TAU;
+        A = 16 * Math.pow(Math.sin(t2), 3) * 2.7;
+        B = (13 * Math.cos(t2) - 5 * Math.cos(2 * t2) - 2 * Math.cos(3 * t2) - Math.cos(4 * t2)) * 2.7 + 4;
+        C = gauss() * 4;
+      } else if (type === 'ring') {
+        const a = j / n * TAU, s = 46 * rand(.94, 1.02);
+        A = Math.cos(a) * s; B = Math.sin(a) * s; C = gauss() * 3;
+      } else if (type === 'flower') {
+        const t2 = Math.random() * TAU, r = Math.abs(Math.cos(3 * t2)) * 52;
+        A = Math.cos(t2) * r; B = Math.sin(t2) * r; C = gauss() * 3;
+      } else {
+        const x = gauss(), y = gauss(), z = gauss(), l = Math.hypot(x, y, z) || 1, s = type === 'willow' ? rand(22, 40) : rand(28, 50);
+        A = x / l * s; B = y / l * s; C = z / l * s;
+      }
+      fwPos[i * 3] = c.x; fwPos[i * 3 + 1] = c.y; fwPos[i * 3 + 2] = c.z;
+      fwVel[i * 3] = _right.x * A + _up.x * B + _dir.x * C;
+      fwVel[i * 3 + 1] = _right.y * A + _up.y * B + _dir.y * C;
+      fwVel[i * 3 + 2] = _right.z * A + _up.z * B + _dir.z * C;
+      fwCol.set(mixC(pal[0], pal[1], Math.random()), i * 3);
+      fwSize[i] = rand(2.6, 5.2); fwBorn[i] = now;
+      fwLife[i] = type === 'willow' ? rand(2.8, 4) : rand(1.7, 2.7);
+      fwGrav[i] = grav; fwK[i] = 0;
+    }
+    fwGeo.attributes.aColor.needsUpdate = true; fwGeo.attributes.aSize.needsUpdate = true;
+    const f = flashes.find(x => !x.on) || flashes[0];
+    f.on = true; f.t0 = now; f.s.visible = true; f.s.position.copy(c);
+  }
+  function updateFireworks(t, dt) {
+    const drag = Math.max(0, 1 - 1.4 * dt);
+    for (let i = 0; i < FW_N; i++) {
+      if (fwK[i] >= 1) continue;
+      const k = (t - fwBorn[i]) / fwLife[i];
+      if (k >= 1) { fwK[i] = 1; continue; }
+      fwK[i] = k;
+      fwVel[i * 3] *= drag; fwVel[i * 3 + 1] = fwVel[i * 3 + 1] * drag - fwGrav[i] * dt; fwVel[i * 3 + 2] *= drag;
+      fwPos[i * 3] += fwVel[i * 3] * dt; fwPos[i * 3 + 1] += fwVel[i * 3 + 1] * dt; fwPos[i * 3 + 2] += fwVel[i * 3 + 2] * dt;
+    }
+    fwGeo.attributes.position.needsUpdate = true; fwGeo.attributes.aK.needsUpdate = true;
+    for (const f of flashes) {
+      if (!f.on) continue;
+      const age = t - f.t0;
+      if (age > .6) { f.on = false; f.s.visible = false; continue; }
+      f.s.material.opacity = 1 - age / .6;
+      const sc = 24 + age * 90; f.s.scale.set(sc, sc, 1);
+    }
+  }
+  // cohetes que suben con estela antes de estallar
+  const rockets = [];
+  function launchRocket(type, delay) {
+    if (REDUCE) return;
+    const d = rand(120, 185), nx = rand(-.8, .8), ny = rand(.12, .62);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkTex, opacity: 1, ...addBlend }));
+    s.visible = false; scene.add(s);
+    rockets.push({ s, start: viewPoint(d, nx + rand(-.1, .1), -1.15), end: viewPoint(d, nx, ny),
+                   t0: now + (delay || 0), dur: rand(.85, 1.2), type });
+  }
+  function updateRockets(t) {
+    for (let i = rockets.length - 1; i >= 0; i--) {
+      const r = rockets[i], k = (t - r.t0) / r.dur;
+      if (k < 0) continue;
+      if (k >= 1) { fireworkAt(r.end, r.type); scene.remove(r.s); r.s.material.dispose(); rockets.splice(i, 1); continue; }
+      r.s.visible = true; r.s.scale.set(3.2, 3.2, 1);
+      r.s.position.lerpVectors(r.start, r.end, 1 - Math.pow(1 - k, 2));
+      if (Math.random() < .8) emit(pSparks, r.s.position.clone(), new THREE.Vector3(rand(-3, 3), rand(-8, -3), rand(-3, 3)), rand(1.2, 2.4), rand(.5, .9));
+    }
+  }
+
+  /* --- 5. Girasol gigante que florece en el cielo y se deshace en luz --- */
+  const bloomSp = new THREE.Sprite(new THREE.SpriteMaterial({ map: flowerTexs[1], transparent: true, opacity: 0, depthWrite: false, fog: false }));
+  const bloomGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex('rgba(255,225,90,.65)', 'rgba(255,170,30,.18)'), opacity: 0, ...addBlend }));
+  bloomSp.visible = bloomGlow.visible = false; scene.add(bloomGlow); scene.add(bloomSp);
+  const bloom = { on: false, t0: 0, size: 60, burst: false };
+  function startBloom(t) {
+    if (bloom.on || REDUCE) return;
+    const d = rand(150, 185);
+    bloomSp.position.copy(viewPoint(d, rand(-.4, .4), rand(-.05, .3)));
+    bloomGlow.position.copy(bloomSp.position);
+    bloom.size = d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.05;
+    bloom.on = true; bloom.t0 = t; bloom.burst = false; bloomSp.visible = bloomGlow.visible = true;
+  }
+  function updateBloom(t) {
+    if (!bloom.on) return;
+    const age = t - bloom.t0;
+    if (age >= 8) { bloom.on = false; bloomSp.visible = bloomGlow.visible = false; return; }
+    let s, o;
+    if (age < 2.2) {
+      const k = age / 2.2, c1 = 1.70158, c3 = c1 + 1;
+      s = 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); o = Math.min(1, age / .8);
+    } else if (age < 6) { s = 1 + .03 * Math.sin(age * 2); o = 1; }
+    else {
+      const k = (age - 6) / 2; s = 1 + k * .5; o = 1 - k;
+      if (!bloom.burst) {
+        bloom.burst = true; camBasis();
+        for (let i = 0; i < 70; i++) {
+          const a = rand(0, TAU), sp = rand(10, 34);
+          const v = _right.clone().multiplyScalar(Math.cos(a) * sp).addScaledVector(_up, Math.sin(a) * sp);
+          emit(pSparks, bloomSp.position, v, rand(3, 5), rand(1.4, 2.2));
+        }
+        for (let i = 0; i < 12; i++) {
+          const a = rand(0, TAU), sp = rand(8, 22);
+          const v = _right.clone().multiplyScalar(Math.cos(a) * sp).addScaledVector(_up, Math.sin(a) * sp + 5);
+          emit(pHearts, bloomSp.position, v, rand(2.6, 4.4), rand(1.8, 2.6));
+        }
+      }
+    }
+    bloomSp.material.opacity = o * .95; bloomSp.material.rotation = -.6 + age * .12;
+    bloomSp.scale.set(bloom.size * s, bloom.size * s, 1);
+    bloomGlow.material.opacity = o * .8; bloomGlow.scale.set(bloom.size * 2.6 * s, bloom.size * 2.6 * s, 1);
+  }
+
+  /* --- 6. Onda de corazones desde el núcleo de la galaxia --- */
+  let coreT = -99;
+  function coreBurst(t) {
+    coreT = t;
+    const c = new THREE.Vector3(0, 3, 0);
+    for (let i = 0; i < 36; i++) {
+      const a = i / 36 * TAU;
+      emit(pHearts, c, new THREE.Vector3(Math.cos(a) * 30, rand(6, 14), Math.sin(a) * 30), rand(2.6, 4.4), rand(2.6, 3.4));
+    }
+    for (let i = 0; i < 60; i++) {
+      const a = rand(0, TAU), sp = rand(20, 44);
+      emit(pSparks, c, new THREE.Vector3(Math.cos(a) * sp, rand(2, 18), Math.sin(a) * sp), rand(2.5, 4.5), rand(1.4, 2.2));
+    }
+  }
+
+  /* --- Director del espectáculo --- */
+  const showLines = CONFIG.textosShow || [];
+  let nextFW = 5.5, nextFinale = 30, nextBloom = 13, nextCore = 10, nextCap = 9, capIdx = 0;
+  function finale(t) {
+    const types = ['heart', 'flower', 'ring', 'sphere', 'heart', 'willow', 'flower'];
+    types.forEach((ty, i) => launchRocket(ty, i * .28));
+    setCaption('Feliz Día de las Flores Amarillas 🌻', 7000);
+    nextCap = t + 14;
+  }
+  function updateShow(t, dt) {
+    if (REDUCE) return;
+    const fa = clamp01((t - 1) / 5);
+    auroras.forEach(m => { m.uniforms.uFade.value = fa; });
+
+    // cintas de luz
+    const o = [0, 0, 0], rf = clamp01((t - 1.5) / 2.5);
+    for (const r of ribbons) {
+      r.pts.visible = t > 1.5; if (!r.pts.visible) continue;
+      r.pts.material.uniforms.uFade.value = rf;
+      const base = t * .55;
+      for (let i = 0; i < r.n; i++) {
+        r.path(base - i * .018, o);
+        r.pos[i * 3] = o[0]; r.pos[i * 3 + 1] = o[1]; r.pos[i * 3 + 2] = o[2];
+      }
+      r.pts.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // farolitos
+    for (const l of lanterns) {
+      if (t < l.born) continue;
+      l.y += l.v * dt;
+      if (l.y > 115) { l.y = -30; const a = rand(0, TAU), r = rand(28, 125); l.bx = Math.cos(a) * r; l.bz = Math.sin(a) * r; }
+      const x = l.bx + Math.sin(t * .5 + l.ph) * 3.5, z = l.bz + Math.cos(t * .4 + l.ph) * 3;
+      const fade = clamp01((t - l.born) / 2) * clamp01((l.y + 30) / 20) * clamp01((115 - l.y) / 22);
+      const fl = .85 + .15 * Math.sin(t * 7 + l.ph * 5);
+      l.body.position.set(x, l.y, z); l.glow.position.set(x, l.y, z);
+      l.body.material.opacity = fade; l.body.material.rotation = Math.sin(t * .8 + l.ph) * .08;
+      l.body.scale.set(l.size * .8, l.size, 1);
+      l.glow.material.opacity = fade * .7 * fl; l.glow.scale.set(l.size * 3.2 * fl, l.size * 3.2 * fl, 1);
+    }
+
+    updateRockets(t); updateFireworks(t, dt); updateBloom(t);
+
+    // destello del núcleo
+    const cf = t >= coreT ? Math.exp(-(t - coreT) * 1.8) : 0;
+    coreGlow.scale.set(44 + 34 * cf, 44 + 34 * cf, 1);
+
+    if (!document.hidden) {
+      if (t > nextFW) { launchRocket(); nextFW = t + rand(1.5, 3.2); }
+      if (t > nextFinale) { finale(t); nextFinale = t + rand(38, 48); }
+      if (t > nextBloom) { startBloom(t); nextBloom = t + rand(24, 32); }
+      if (t > nextCore) { coreBurst(t); nextCore = t + rand(16, 22); }
+      if (t > nextCap && showLines.length) { setCaption(showLines[capIdx++ % showLines.length]); nextCap = t + 13; }
     }
   }
 
@@ -1502,46 +2066,19 @@
     ['pointerdown', 'pointerup', 'keydown'].forEach(ev => addEventListener(ev, kick));
   }
 
-  /* ---------- Galería de fotos (3 por galaxia) ---------- */
-  const galEl = document.getElementById('gallery'), galTitle = document.getElementById('galTitle'),
-        galPhotos = document.getElementById('galPhotos'), galClose = document.getElementById('galClose'),
-        lightEl = document.getElementById('lightbox'), lightImg = document.getElementById('lightImg');
-  const fotoName = n => CONFIG.prefijo + String(n).padStart(2, '0') + '.' + CONFIG.extension;
-  const ROTS = ['-2deg', '1.5deg', '-1deg'];
-  function openGallery(gi) {
-    galTitle.textContent = (CONFIG.galaxias && CONFIG.galaxias[gi]) || ('Galaxia ' + (gi + 1));
-    galPhotos.textContent = '';
-    for (let k = 0; k < 3; k++) {
-      const n = gi * 3 + k + 1, file = fotoName(n), src = CONFIG.carpeta + file;
-      const fig = document.createElement('figure');
-      fig.style.setProperty('--rot', ROTS[k]); fig.style.setProperty('--d', (.2 + k * .35) + 's');
-      const img = new Image(); img.alt = 'Foto ' + n; img.src = src;
-      img.onerror = () => {
-        const ph = document.createElement('div'); ph.className = 'ph-missing';
-        ph.textContent = 'No se encontró ' + src + '. Coloca la foto junto a este archivo.';
-        img.replaceWith(ph); fig.dataset.missing = '1';
-      };
-      const cap = document.createElement('figcaption'); cap.textContent = 'Recuerdo ' + (k + 1) + ' de 3';
-      fig.append(img, cap);
-      fig.addEventListener('click', () => { if (fig.dataset.missing) return; lightImg.src = img.src; lightImg.alt = img.alt; lightEl.hidden = false; });
-      galPhotos.appendChild(fig);
-    }
-    galEl.hidden = false; galClose.focus(); galEl.querySelector('.gal-card').scrollTop = 0;
-  }
-  function closeGallery() { galEl.hidden = true; galPhotos.textContent = ''; }
-  galClose.addEventListener('click', closeGallery);
-  galEl.addEventListener('click', e => { if (e.target === galEl) closeGallery(); });
-  lightEl.addEventListener('click', () => { lightEl.hidden = true; });
-  addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    if (!lightEl.hidden) lightEl.hidden = true; else if (!galEl.hidden) closeGallery();
-  });
-
   /* ---------- Carta, pantalla completa, presentación y contador ---------- */
   document.getElementById('letterBtn').addEventListener('click', () => {
     const paras = CONFIG.carta.map(p => p.replace('{para}', CONFIG.para));
-    paras.push(CONFIG.de ? 'Con todo mi amor, ' + CONFIG.de + ' 💛' : 'Con todo mi amor 💛');
+    paras.push(CONFIG.de ? 'Con todo mi cariño, ' + CONFIG.de + ' 💛' : 'Con todo mi cariño 💛');
     showModal('Para ' + CONFIG.para, paras, null, true);
+  });
+  document.getElementById('storyBtn').addEventListener('click', () => {
+    showModal('Nuestra historia', CONFIG.historia.map(p => p.replace('{para}', CONFIG.para)), null, true, '📖');
+  });
+  let msgDeck = [];
+  document.getElementById('wishBtn').addEventListener('click', () => {
+    if (!msgDeck.length) msgDeck = CONFIG.mensajes.slice().sort(() => Math.random() - .5);
+    showModal('Un mensaje para ti', [msgDeck.pop()], null, false, '🌼');
   });
   const fsBtn = document.getElementById('fs');
   if (!document.fullscreenEnabled) fsBtn.hidden = true;
@@ -1553,7 +2090,6 @@
   document.getElementById('introName').textContent = CONFIG.para;
   const introFrom = document.getElementById('introFrom');
   if (CONFIG.de) introFrom.textContent = 'de ' + CONFIG.de; else introFrom.remove();
-  setTimeout(() => { const el = document.getElementById('intro'); if (el) el.remove(); }, 6600);
 
   const startDate = CONFIG.fecha ? new Date(CONFIG.fecha + 'T00:00:00') : null;
   if (startDate && !isNaN(startDate)) {
@@ -1562,7 +2098,7 @@
     const tick = () => {
       const sec = Math.max(0, Math.floor((Date.now() - startDate.getTime()) / 1000));
       const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60), sc = sec % 60;
-      counterEl.textContent = 'Juntos hace ' + d + ' ' + plural(d, 'día', 'días') + ', ' + h + ' h, ' + m + ' min y ' + sc + ' s 💛';
+      counterEl.textContent = 'Nuestra amistad tiene ' + d + ' ' + plural(d, 'día', 'días') + ', ' + h + ' h, ' + m + ' min y ' + sc + ' s 💛';
     };
     counterEl.hidden = false; tick(); setInterval(tick, 1000);
   }
@@ -1587,10 +2123,8 @@
     if (e.pointerType === 'mouse' && pointers.size === 0) {
       const h = pick(e.clientX, e.clientY);
       active.forEach(x => { x.hovered = (x === h); });
-      const gh = h ? null : galaxyHit(e.clientX, e.clientY);
-      minis.forEach(m => { m.hovered = (m === gh); });
-      dom.style.cursor = (h || gh) ? 'pointer' : '';
-      if (!h && !gh) trail(e.clientX, e.clientY);
+      dom.style.cursor = h ? 'pointer' : '';
+      if (!h) trail(e.clientX, e.clientY);
     }
     const p = pointers.get(e.pointerId);
     if (!p) return;
@@ -1610,7 +2144,11 @@
     const p = pointers.get(e.pointerId);
     if (p && e.type === 'pointerup' && pointers.size === 1 && p.moved < 8 && performance.now() - p.t < 600) {
       const a = pick(e.clientX, e.clientY);
-      if (a) openPoem(a); else if (!tapGalaxy(e.clientX, e.clientY) && !tapSculpture(e.clientX, e.clientY)) burst(e.clientX, e.clientY);
+      if (a) openPoem(a);
+      else if (!tapSculpture(e.clientX, e.clientY)) {
+        burst(e.clientX, e.clientY);
+        fireworkAt(rayPoint(e.clientX, e.clientY, 120));   // ¡fuego artificial donde toques!
+      }
     }
     pointers.delete(e.pointerId); pinchDist = 0;
   };
@@ -1626,12 +2164,149 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
-  setTimeout(() => { document.getElementById('hint').style.opacity = 0; }, 9000);
-
   /* ---------- Animación ---------- */
   const clock = new THREE.Clock();
+
+  /* ---------- Pantalla de inicio: animación de flor y luego aparece la galaxia ---------- */
+  const startEl = document.getElementById('start'), startBtn = document.getElementById('startBtn');
+  let began = false, prewarmed = false, pressed = false;
+
+  // Muestra la galaxia: arranca su reloj, funde la pantalla de inicio y lanza "Para [nombre]"
+  function reveal() {
+    if (began) return;
+    began = true;
+    clock.start();
+    // vuelo de cámara inicial: llega desde lejos, girando hacia la galaxia
+    if (!REDUCE) { theta = tTheta - 2.6; phi = .45; radius = 300; }
+    startEl.classList.add('hide');
+    setTimeout(() => startEl.remove(), 1400);
+    const introEl = document.getElementById('intro');
+    introEl.classList.add('play');
+    setTimeout(() => introEl.remove(), 6300);
+    setTimeout(() => { document.getElementById('hint').style.opacity = 0; }, 11000);
+  }
+
+  // Animación: un girasol florece, brilla, se acerca a la cámara y estalla en luz dorada
+  function playBloom(onReveal) {
+    const cv = document.getElementById('bloom'), g = cv.getContext('2d'), cap = document.getElementById('bloomCaption');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const easeOut = k => 1 - Math.pow(1 - k, 3);
+    const easeBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+    cap.textContent = CONFIG.textoAnimacion || '';
+    let W = 0, H = 0;
+    const fit = () => { W = innerWidth; H = innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
+    fit(); addEventListener('resize', fit);
+
+    const sparkles = Array.from({ length: 70 }, () => ({ a: rand(0, TAU), sp: rand(.25, .6), ph: Math.random(), sz: rand(1.2, 3.2), d0: rand(1.05, 1.4) }));
+    const fall = Array.from({ length: 34 }, () => ({ x: Math.random(), y0: Math.random(), v: rand(.05, .13), sz: rand(7, 15), ph: rand(0, TAU), rot: rand(-2, 2) }));
+    const layers = [
+      { n: 20, len: 1,  w: .2, off: 0,           start: 0,   c1: '#ff9f00', c2: '#ffcf1f' },
+      { n: 20, len: .9, w: .2, off: Math.PI / 20, start: .18, c1: '#ffb300', c2: '#ffe44d' }
+    ];
+    const t0 = performance.now();
+    let revealed = false;
+
+    function tick(nowMs) {
+      if (!startEl.isConnected) { removeEventListener('resize', fit); return; }
+      requestAnimationFrame(tick);
+      const t = Math.max(0, (nowMs - t0) / 1000);
+      const b = clamp((t - .3) / 2.3);          // florecer
+      const z = clamp((t - 3.1) / 1.0);         // acercarse a la cámara
+      const cx = W / 2, cy = H * .46, R = Math.min(W, H) * .27;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+
+      // resplandor
+      const ha = Math.min(.75, .55 * easeOut(clamp(b * 1.2)) * (1 + .12 * Math.sin(t * 3)));
+      const gl = g.createRadialGradient(cx, cy, 0, cx, cy, R * 2.6);
+      gl.addColorStop(0, 'rgba(255,214,90,' + ha + ')');
+      gl.addColorStop(.5, 'rgba(255,170,30,' + (ha * .25) + ')');
+      gl.addColorStop(1, 'rgba(255,170,30,0)');
+      g.fillStyle = gl; g.fillRect(0, 0, W, H);
+
+      // pétalos que caen
+      for (const p of fall) {
+        const y = ((p.y0 + t * p.v) % 1.15) * (H + 40) - 20;
+        const x = p.x * W + Math.sin(t * .9 + p.ph) * 26;
+        g.save(); g.translate(x, y); g.rotate(t * p.rot + p.ph);
+        g.globalAlpha = .55 * clamp(t / .8) * (1 - z);
+        g.fillStyle = '#ffcf33'; g.beginPath(); g.ellipse(0, 0, p.sz * .38, p.sz, 0, 0, TAU); g.fill();
+        g.restore();
+      }
+      g.globalAlpha = 1;
+
+      // girasol
+      const breathe = 1 + .015 * Math.sin(t * 2.2), zs = (1 + 26 * z * z * z) * breathe;
+      g.save(); g.translate(cx, cy); g.scale(zs, zs); g.rotate(-.5 + .5 * easeOut(b) + t * .04);
+      for (const L of layers) {
+        for (let i = 0; i < L.n; i++) {
+          const pp = easeBack(clamp((b - L.start - (i / L.n) * .3) / .45));
+          if (pp <= .001) continue;
+          const len = .25 + (L.len - .25) * pp;
+          g.save(); g.rotate(i / L.n * TAU + L.off + (1 - clamp(pp)) * .7);
+          const gr = g.createLinearGradient(0, R * .25, 0, R * len);
+          gr.addColorStop(0, L.c1); gr.addColorStop(1, L.c2);
+          g.fillStyle = gr; g.strokeStyle = 'rgba(200,110,0,.55)'; g.lineWidth = Math.max(.8, R * .012);
+          g.beginPath(); g.moveTo(0, R * .25);
+          g.quadraticCurveTo(R * L.w * 1.1, R * .6 * len, 0, R * len);
+          g.quadraticCurveTo(-R * L.w * 1.1, R * .6 * len, 0, R * .25);
+          g.fill(); g.stroke(); g.restore();
+        }
+      }
+      const cr = R * .36 * easeOut(clamp(b * 2));
+      if (cr > 1) {
+        const cg = g.createRadialGradient(0, 0, 0, 0, 0, cr);
+        cg.addColorStop(0, '#6b4218'); cg.addColorStop(.7, '#3d2410'); cg.addColorStop(1, '#2a180a');
+        g.fillStyle = cg; g.beginPath(); g.arc(0, 0, cr, 0, TAU); g.fill();
+        const seeds = Math.floor(140 * clamp((b - .3) / .6));
+        g.fillStyle = 'rgba(190,130,55,.6)';
+        for (let i = 0; i < seeds; i++) {
+          const r = Math.sqrt(i) * R * .028, a = i * 2.39996;
+          if (r > cr * .92) break;
+          g.beginPath(); g.arc(Math.cos(a) * r, Math.sin(a) * r, R * .018, 0, TAU); g.fill();
+        }
+      }
+      g.restore();
+
+      // destellos que salen de la flor
+      if (t > 1) {
+        for (const s2 of sparkles) {
+          const f = (t * s2.sp + s2.ph) % 1, d = R * (s2.d0 + f * 1.6) * (1 + z * 3);
+          g.globalAlpha = Math.sin(Math.PI * f) * .9 * clamp((t - 1) / .8);
+          g.fillStyle = '#fff1a8'; g.beginPath();
+          g.arc(cx + Math.cos(s2.a + t * .1) * d, cy + Math.sin(s2.a + t * .1) * d, s2.sz, 0, TAU); g.fill();
+        }
+        g.globalAlpha = 1;
+      }
+
+      // destello final que se funde con la galaxia
+      const fa = clamp((t - 3.35) / .55);
+      if (fa > 0) { g.fillStyle = 'rgba(255,240,180,' + fa + ')'; g.fillRect(0, 0, W, H); }
+
+      cap.classList.toggle('show', t > 1.2 && t < 3.0);
+      if (!revealed && t >= 3.9) { revealed = true; onReveal(); }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (pressed) return;
+    pressed = true; startBtn.disabled = true;
+    if (CONFIG.musicaAutomatica && !started && cur < 0) startMusic();   // el toque permite el sonido
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return; }
+    startEl.classList.add('playing');
+    playBloom(reveal);
+  });
+  startBtn.focus();
+
   function frame() {
     requestAnimationFrame(frame);
+    if (!began) {
+      // un solo dibujo previo para cargar texturas y shaders mientras se ve el botón
+      if (!prewarmed) { prewarmed = true; renderer.render(scene, camera); }
+      return;
+    }
     const dt = Math.min(clock.getDelta(), .05), t = clock.getElapsedTime();
     U.uTime.value = t;
 
@@ -1659,11 +2334,12 @@
       if (f.spin) f.s.material.rotation = f.rot0 + t * f.spin;
     }
 
-    // cámara
+    // cámara (al principio se mueve más lento: vuelo cinematográfico de entrada)
     tTheta += 0; // la rotación manual se mantiene
-    theta += (tTheta - theta) * .08;
-    phi += (tPhi - phi) * .08;
-    radius += (tRadius - radius) * .08;
+    const kc = REDUCE ? .08 : .03 + .05 * clamp01((t - 3) / 4);
+    theta += (tTheta - theta) * kc;
+    phi += (tPhi - phi) * kc;
+    radius += (tRadius - radius) * kc;
     const aspect = camera.aspect, fit = Math.max(1, .88 / aspect);
     const sway = Math.sin(t * .12) * .35, R = radius * fit, th = theta + sway;
     camera.position.set(
@@ -1703,6 +2379,7 @@
     }
 
     updateExtras(t, dt);
+    updateShow(t, dt);
 
     renderer.render(scene, camera);
   }
